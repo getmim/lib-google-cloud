@@ -49,12 +49,11 @@ class Auth
         $cache_value= \Mim::$app->cache->get($cache_name);
         if($cache_value)
             return $cache_value;
-
-        $cert_file = $certFile;
-        if(!is_file($cert_file))
+        
+        if(!is_file($certFile))
             throw new \Exception('Service account key file not found on etc/cert');
 
-        $cert = file_get_contents($cert_file);
+        $cert = file_get_contents($certFile);
         $cert = json_decode($cert);
 
         $token = self::_getToken($cert, $scopes);
