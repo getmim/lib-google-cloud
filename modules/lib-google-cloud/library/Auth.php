@@ -14,13 +14,16 @@ class Auth
     private static $last_error;
 
     private static function _getToken(object $cert, string $scope): ?object{
+        $opts = [
+            'cert' => $cert->private_key
+        ];
         $jwt = Jwt::encode([
             'scope' => $scope,
             'exp'   => strtotime('+1 hour'),
             'iss'   => $cert->client_email,
             'aud'   => 'https://oauth2.googleapis.com/token',
             'iat'   => time()
-        ]);
+        ], $opts);
 
         $result = Curl::fetch([
             'url'       => 'https://oauth2.googleapis.com/token',
@@ -40,14 +43,14 @@ class Auth
         return $result;
     }
 
-    static function get(string $scopes=''): ?string{
+    static function get(string $certFile, string $scopes=''): ?string{
         // find it on cache first
         $cache_name = 'g-cloud-' . md5($scopes);
         $cache_value= \Mim::$app->cache->get($cache_name);
         if($cache_value)
             return $cache_value;
 
-        $cert_file = BASEPATH . '/etc/cert/lib-google-cloud.json';
+        $cert_file = $certFile;
         if(!is_file($cert_file))
             throw new \Exception('Service account key file not found on etc/cert');
 
